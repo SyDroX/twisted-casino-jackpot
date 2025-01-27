@@ -1,0 +1,5 @@
+@TwistedCasinoJackpotServer_HostAddress = http://localhost:5171
+
+Accept: application/json
+
+###
