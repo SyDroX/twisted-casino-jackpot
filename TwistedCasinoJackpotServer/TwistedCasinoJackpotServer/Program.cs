@@ -1,3 +1,5 @@
+using TwistedCasinoJackpotServer.Services;
+
 namespace TwistedCasinoJackpotServer;
 
 public static class Program
@@ -14,7 +16,8 @@ public static class Program
             options.Cookie.HttpOnly    = true;
             options.Cookie.IsEssential = true;
         });
-
+        builder.Services.AddSingleton<GameService>();
+        
         WebApplication app = builder.Build();
 
         app.UseSession();
