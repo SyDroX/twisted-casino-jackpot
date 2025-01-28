@@ -28,8 +28,7 @@ public class GameController : ControllerBase
     public IActionResult Roll()
     {
         int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
-
-
+        
         if (credits <= 0)
         {
             return Ok(new
