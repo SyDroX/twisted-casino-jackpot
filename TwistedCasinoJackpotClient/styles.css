@@ -1,0 +1,74 @@
+﻿/* General container styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #2b2b2b;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.container {
+    text-align: center;
+    background: #444;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Slot machine styling */
+.slots {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.slots span {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #fff;
+    margin: 0 5px;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+}
+
+/* Button styling */
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #fff;
+    background-color: #007bff;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:disabled {
+    background-color: #555;
+    cursor: not-allowed;
+}
+
+/* Credits and message styling */
+#credits {
+    font-size: 1.2rem;
+    margin: 10px 0;
+}
+
+#message {
+    margin-top: 20px;
+    font-size: 1rem;
+    color: #ffcc00;
+}
