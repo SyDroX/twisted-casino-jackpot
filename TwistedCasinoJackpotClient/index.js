@@ -1,18 +1,13 @@
 // Configurable API base URL and port
-const apiBaseUrl = `http://localhost:${getPort()}`;
+const apiBaseUrl = `https://localhost:5000`;
 const gameApiUrl = `${apiBaseUrl}/Game`;
-
-function getPort() {
-    // Default to 5000 if no port is specified
-    return window.location.port || 5000;
-}
 
 // Start the game by initializing credits
 async function startGame() {
     try {
         const response = await fetch(`${gameApiUrl}/start`);
         const data = await response.json();
-        updateCredits(data.Credits);
+        updateCredits(data.credits);
     } catch (error) {
         showMessage("Failed to start the game. Please try again later.");
     }
@@ -31,8 +26,8 @@ async function rollSlots() {
         const response = await fetch(`${gameApiUrl}/roll`, { method: "POST" });
         const data = await response.json();
 
-        if (data.Message) {
-            showMessage(data.Message);
+        if (data.message) {
+            showMessage(data.message);
             rollButton.disabled = false;
             return;
         }
@@ -45,8 +40,8 @@ async function rollSlots() {
         });
 
         setTimeout(() => {
-            updateCredits(data.Credits);
-            if (data.IsWinning) {
+            updateCredits(data.credits);
+            if (data.isWinning) {
                 showMessage("Congratulations! You won!");
             } else {
                 showMessage("You lost. Better luck next time!");
@@ -64,7 +59,7 @@ async function cashOut() {
     try {
         const response = await fetch(`${gameApiUrl}/cashout`, { method: "POST" });
         const data = await response.json();
-        alert(data.Message);
+        alert(data.message);
         startGame();
     } catch (error) {
         showMessage("Failed to cash out. Please try again later.");
