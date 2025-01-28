@@ -20,6 +20,7 @@ public class GameController : ControllerBase
     {
         int credits = GameService.StartGame();
         HttpContext.Session.SetInt32("Credits", credits);
+
         return Ok(new { Credits = credits });
     }
 
@@ -28,15 +29,29 @@ public class GameController : ControllerBase
     {
         int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
 
+
+        if (credits <= 0)
+        {
+            return Ok(new
+            {
+                Message = "You have no more credits to play. Please restart the game.",
+                Credits = 0
+            });
+        }
+
         try
         {
             RollResult result = _gameService.Roll(credits);
-            HttpContext.Session.SetInt32("Credits", result.UpdatedCredits);
+            HttpContext.Session.SetInt32("Credits", result.Credits);
+
             return Ok(result);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
-            return BadRequest(new { ex.Message });
+            return StatusCode(StatusCodes.Status500InternalServerError, new
+            {
+                Message = $"An unexpected error occurred: {ex.Message}"
+            });
         }
     }
 
@@ -45,6 +60,11 @@ public class GameController : ControllerBase
     {
         int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
         HttpContext.Session.Clear();
-        return Ok(new { Message = "Cashed out successfully!", Credits = credits });
+
+        return Ok(new
+        {
+            Message = "Cashed out successfully!",
+            Credits = credits
+        });
     }
 }

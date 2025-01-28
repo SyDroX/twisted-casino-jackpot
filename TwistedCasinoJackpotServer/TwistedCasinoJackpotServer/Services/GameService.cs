@@ -22,26 +22,26 @@ public class GameService
             throw new InvalidOperationException("Not enough credits to play.");
         }
 
-        string[] symbols   = GenerateSymbols();
-        bool     isWinning = IsWinningRoll(symbols);
-        int      reward    = CalculateReward(symbols, isWinning);
+        string[] symbols       = GenerateSymbols();
+        bool     isWinningRoll = IsWinningRoll(symbols);
+        int      reward        = CalculateReward(symbols, isWinningRoll);
 
         // Cheating logic
-        if (isWinning && credits >= 40)
+        if (isWinningRoll && credits >= 40)
         {
             double cheatChance = credits >= 60 ? 0.6 : 0.3;
-            
+
             if (_random.NextDouble() < cheatChance && reward > 0)
             {
-                symbols   = GenerateSymbols(); 
-                isWinning = IsWinningRoll(symbols); 
-                reward    = isWinning ? CalculateReward(symbols, isWinning) : 0;
+                symbols       = GenerateSymbols();
+                isWinningRoll = IsWinningRoll(symbols);
+                reward        = isWinningRoll ? CalculateReward(symbols, isWinningRoll) : 0;
             }
         }
-        
-        int updatedCredits = isWinning ? credits + reward : credits - 1;
 
-        return new RollResult(symbols, updatedCredits, isWinning, reward);
+        int updatedCredits = isWinningRoll ? credits + reward : credits - 1;
+
+        return new RollResult(symbols, updatedCredits, isWinningRoll, reward, GetRollResultMessage(isWinningRoll));
     }
 
     private static bool IsWinningRoll(string[] symbols)
@@ -61,6 +61,11 @@ public class GameService
             "W" => 40, // Watermelon
             _ => 0
         };
+    }
+
+    private static string GetRollResultMessage(bool won)
+    {
+        return won ? "You won!" : "You lost!";
     }
 
     private string[] GenerateSymbols()

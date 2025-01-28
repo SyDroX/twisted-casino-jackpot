@@ -2,16 +2,18 @@
 
 public class RollResult
 {
-    public string[] Symbols        { get; set; }
-    public int      UpdatedCredits { get; set; }
-    public int      Reward         { get; set; }
-    public bool     Won            { get; set; }
+    public string[] Symbols   { get; set; }
+    public int      Credits   { get; set; }
+    public int      Reward    { get; set; }
+    public bool     IsWinning { get; set; }
+    public string   Message   { get; set; }
 
-    public RollResult(string[] symbols, int updatedCredits, bool won, int reward)
+    public RollResult(string[] symbols, int credits, bool isWinning, int reward, string message = "")
     {
-        Symbols        = symbols;
-        UpdatedCredits = updatedCredits;
-        Won            = won;
-        Reward         = reward;
+        Symbols   = symbols;
+        Credits   = credits;
+        IsWinning = isWinning;
+        Reward    = reward;
+        Message   = message;
     }
 }
