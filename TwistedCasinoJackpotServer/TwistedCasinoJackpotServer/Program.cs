@@ -13,9 +13,11 @@ public static class Program
         builder.Services.AddDistributedMemoryCache();
         builder.Services.AddSession(options =>
         {
-            options.IdleTimeout        = TimeSpan.FromMinutes(30);
-            options.Cookie.HttpOnly    = true;
-            options.Cookie.IsEssential = true;
+            options.IdleTimeout         = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly     = true;
+            options.Cookie.IsEssential  = true;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always; 
+            options.Cookie.SameSite     = SameSiteMode.None;
         });
         // Add CORS policy
         builder.Services.AddCors(options =>
@@ -26,7 +28,8 @@ public static class Program
                                   // Accept any port on localhost
                                   policyBuilder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
                                                .AllowAnyHeader()
-                                               .AllowAnyMethod();
+                                               .AllowAnyMethod()
+                                               .AllowCredentials();
                               });
             options.AddPolicy("Production",
                               policyBuilder =>
@@ -34,7 +37,8 @@ public static class Program
                                   policyBuilder
                                       .WithOrigins("https://myproductiondomain.com") // Add allowed origins
                                       .AllowAnyHeader() // Allow any HTTP header
-                                      .AllowAnyMethod(); // Allow any HTTP method (GET, POST, etc.)
+                                      .AllowAnyMethod()
+                                      .AllowCredentials(); // Allow any HTTP method (GET, POST, etc.)
                               });
         });
         builder.Services.AddSingleton<GameService>();
@@ -46,6 +50,14 @@ public static class Program
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ErrorHandlingMiddleware>();
 
+        
+
+        app.UseHttpsRedirection();
+        app.UseSession();
+        app.UseRouting();
+        app.UseAuthorization();
+        app.MapControllers();
+        
         if (app.Environment.IsDevelopment())
         {
             app.UseSwaggerUI(c =>
@@ -60,12 +72,7 @@ public static class Program
         {
             app.UseCors("Production");
         }
-
-        app.UseSession();
-        app.UseHttpsRedirection();
-        app.UseRouting();
-        app.UseAuthorization();
-        app.MapControllers();
+        
         app.Run();
     }
 }
