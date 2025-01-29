@@ -23,7 +23,13 @@ async function rollSlots() {
     clearMessage();
 
     try {
-        const response = await fetch(`${gameApiUrl}/roll`, { method: "POST" });
+        const response = await fetch(`${gameApiUrl}/roll`, {
+            method: "POST",
+            credentials: "include", // Ensures cookies are sent with the request
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
         const data = await response.json();
 
         if (data.message) {
