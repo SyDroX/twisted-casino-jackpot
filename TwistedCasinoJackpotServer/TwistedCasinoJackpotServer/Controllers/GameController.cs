@@ -8,27 +8,35 @@ namespace TwistedCasinoJackpotServer.Controllers;
 [Route("[controller]")]
 public class GameController : ControllerBase
 {
-    private readonly GameService _gameService;
+    private readonly GameService             _gameService;
+    private readonly ILogger<GameController> _logger;
 
-    public GameController(GameService gameService)
+    public GameController(GameService gameService, ILogger<GameController> logger)
     {
         _gameService = gameService;
+        _logger      = logger;
     }
 
     [HttpGet("start")]
     public IActionResult StartGame()
     {
-        int credits = GameService.StartGame();
-        HttpContext.Session.SetInt32("Credits", credits);
+        try
+        {
+            HttpContext.Session.SetInt32("Credits", 10);
 
-        return Ok(new { Credits = credits });
+            return Ok(new { Credits = 10 });
+        }
+        catch (Exception exception)
+        {
+            return HandleException(exception, "starting the game");
+        }
     }
 
     [HttpPost("roll")]
     public IActionResult Roll()
     {
         int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
-        
+
         if (credits <= 0)
         {
             return Ok(new
@@ -45,12 +53,9 @@ public class GameController : ControllerBase
 
             return Ok(result);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new
-            {
-                Message = $"An unexpected error occurred: {ex.Message}"
-            });
+            return HandleException(exception, "rolling");
         }
     }
 
@@ -58,12 +63,31 @@ public class GameController : ControllerBase
     public IActionResult CashOut()
     {
         int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
-        HttpContext.Session.Clear();
 
-        return Ok(new
+        try
         {
-            Message = "Cashed out successfully!",
-            Credits = credits
-        });
+            HttpContext.Session.Clear();
+
+            return Ok(new
+            {
+                Message = "Cashed out successfully!",
+                Credits = credits
+            });
+        }
+        catch (Exception ex)
+        {
+            return HandleException(ex, "cashing out");
+        }
+    }
+
+    private ObjectResult HandleException(Exception ex, string errorName)
+    {
+        const string errorForUserFormat = "An error occurred while {0}. Please try again later.";
+        const string errorForLogFormat  = "Error {0}.";
+
+        _logger.LogError(ex, string.Format(errorForLogFormat, errorName));
+
+        return StatusCode(StatusCodes.Status500InternalServerError,
+                          new { Message = string.Format(errorForUserFormat, errorName) });
     }
 }
