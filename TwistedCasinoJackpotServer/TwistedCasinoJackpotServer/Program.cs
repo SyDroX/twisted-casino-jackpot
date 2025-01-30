@@ -81,8 +81,16 @@ public static class Program
             options.AddPolicy(CorsPolicyName,
                               policyBuilder =>
                               {
-                                  policyBuilder.WithOrigins(allowedOrigins)
-                                               .WithMethods(allowedMethods)
+                                  if (builder.Environment.IsDevelopment())
+                                  {
+                                      policyBuilder.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost");
+                                  }
+                                  else
+                                  {
+                                      policyBuilder.WithOrigins(allowedOrigins);
+                                  }
+
+                                  policyBuilder.WithMethods(allowedMethods)
                                                .WithHeaders(allowedHeaders);
 
                                   if (allowCredentials)
