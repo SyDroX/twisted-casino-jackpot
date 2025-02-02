@@ -1,25 +1,30 @@
 // Configurable API base URL and port
-const apiBaseUrl = `https://localhost:5000`;
+const apiBaseUrl = `http://localhost:5001`;
 const gameApiUrl = `${apiBaseUrl}/Game`;
+const errorFormat = "Failed to {errorName}. Please try again later.";
 
 // Start the game by initializing credits
 async function startGame() {
     try {
-        const response = await fetch(`${gameApiUrl}/start`);
+        const response = await fetch(`${gameApiUrl}/start`, {
+            method: "GET",
+            credentials: "include", // Ensures cookies are sent with the request
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
+
         const data = await response.json();
         updateCredits(data.credits);
     } catch (error) {
-        showMessage("Failed to start the game. Please try again later.");
+        showMessage(error.message || formatString(errorFormat, {errorName: "start the game"}));
     }
 }
 
 // Roll the slot machine
 async function rollSlots() {
-    const rollButton = document.getElementById("rollButton");
-    rollButton.disabled = true;
-
-    const slots = ["slot1", "slot2", "slot3"];
-    slots.forEach((id) => (document.getElementById(id).textContent = "X"));
+    setInitialSlotsValue("X");
+    toggleButtons()
     clearMessage();
 
     try {
@@ -30,61 +35,96 @@ async function rollSlots() {
                 "Content-Type": "application/json",
             }
         });
+
         const data = await response.json();
 
-        if (data.message) {
-            showMessage(data.message);
-            rollButton.disabled = false;
-            return;
+        if (data.symbols) {
+            handleRollResponse(rollButton, slotIds, data);
         }
-
-        // Animate the slot machine roll
-        slots.forEach((id, index) => {
-            setTimeout(() => {
-                document.getElementById(id).textContent = data.Symbols[index];
-            }, (index + 1) * 1000);
-        });
-
-        setTimeout(() => {
-            updateCredits(data.credits);
-            if (data.isWinning) {
-                showMessage("Congratulations! You won!");
-            } else {
-                showMessage("You lost. Better luck next time!");
-            }
-            rollButton.disabled = false;
-        }, 4000);
     } catch (error) {
-        showMessage("An error occurred while rolling. Please try again later.");
-        rollButton.disabled = false;
+        showMessage(error.message || formatString(errorFormat, {errorName: "roll"}));
+        toggleButtons();
     }
 }
 
-// Cash out the player's credits
 async function cashOut() {
     try {
-        const response = await fetch(`${gameApiUrl}/cashout`, { method: "POST" });
+        const response = await fetch(`${gameApiUrl}/cashout`, {
+            method: "POST",
+            credentials: "include", // Ensures cookies are sent with the request
+            headers: {
+                "Content-Type": "application/json",
+            }
+        });
         const data = await response.json();
         alert(data.message);
         startGame();
     } catch (error) {
-        showMessage("Failed to cash out. Please try again later.");
+        showMessage(error.message || formatString(errorFormat, {errorName: "cash out"}));
     }
 }
 
-// Update credits display
+function formatString(template, params) {
+    return template.replace(/{(\w+)}/g, (match, key) => params[key] || match);
+}
+
+function animateSlots(slotIds, symbols, spinDelay) {
+    slotIds.forEach((id, index) => {
+        setTimeout(() => {
+            document.getElementById(id).textContent = symbols[index];
+        }, (index + 1) * spinDelay);
+    });
+}
+
+function toggleButtons(){
+    const buttons =
+        [document.getElementById("rollButton"),
+        document.getElementById("cashOutButton")];
+    buttons.forEach(button => button.disabled = !button.disabled);
+}
+
+function setInitialSlotsValue(value) {
+    const slotIds = ["slot1", "slot2", "slot3"];
+    slotIds.forEach((id) => (document.getElementById(id).textContent = value));
+}
+
+function handleRollResponse(rollButton, slotIds, data) {
+    const slotCount = slotIds.length;
+    const spinDelay = 1000; // Delay for each slot (1 second per slot)
+    const bufferTime = 1000; // Additional buffer after the animation
+    const totalDelay = slotCount * spinDelay + bufferTime;
+
+    animateSlots(slotIds, data.symbols, spinDelay);
+
+    setTimeout(() => {
+        updateCredits(data.credits);
+        showMessage(data.message, data.isWinning);
+
+        rollButton.disabled = false;
+    }, totalDelay);
+}
+
 function updateCredits(credits) {
     document.getElementById("credits").textContent = `Credits: ${credits}`;
 }
 
 // Display a message to the user
-function showMessage(message) {
-    document.getElementById("message").textContent = message;
+function showMessage(message, isWinning = false) {
+    const messageContainer = document.getElementById("message");
+
+    if (isWinning) {
+        messageContainer.classList.add("win");
+    }
+
+    messageContainer.textContent = message;
+    messageContainer.classList.remove("hidden"); // Show the container
 }
 
 // Clear any existing message
 function clearMessage() {
-    document.getElementById("message").textContent = "";
+    const messageContainer = document.getElementById("message");
+    messageContainer.classList.add("hidden");
+    messageContainer.classList.remove("win");
 }
 
 // Event Listeners

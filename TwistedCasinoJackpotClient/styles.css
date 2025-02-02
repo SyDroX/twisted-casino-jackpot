@@ -1,5 +1,4 @@
-﻿/* General container styling */
-body {
+﻿body {
     font-family: Arial, sans-serif;
     background-color: #2b2b2b;
     color: #fff;
@@ -18,7 +17,6 @@ body {
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* Slot machine styling */
 .slots {
     display: flex;
     justify-content: center;
@@ -39,7 +37,6 @@ body {
     color: #fff;
 }
 
-/* Button styling */
 button {
     padding: 10px 20px;
     margin: 5px;
@@ -61,14 +58,29 @@ button:disabled {
     cursor: not-allowed;
 }
 
-/* Credits and message styling */
 #credits {
     font-size: 1.2rem;
     margin: 10px 0;
 }
 
 #message {
-    margin-top: 20px;
-    font-size: 1rem;
-    color: #ffcc00;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    color: red;
+}
+
+#message.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+#message.win {
+    color: green;
+}
+
+#message.lose {
+
 }
