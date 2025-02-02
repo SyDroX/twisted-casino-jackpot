@@ -4,15 +4,26 @@ namespace TwistedCasinoJackpotServer.Services;
 
 public class GameService
 {
-    private const int StartingCredits = 10;
+    private readonly Random                _random = new();
+    private readonly Dictionary<char, int> _rewardTable;
+    private readonly int                   _startingCredits;
+    private readonly List<char>            _symbols;
 
-    private static readonly string[] Symbols = ["C", "L", "O", "W"];
-    
-    private readonly Random _random = new();
-
-    public static int StartGame()
+    public GameService(IConfiguration configuration)
     {
-        return StartingCredits;
+        Dictionary<string, int> rewardConfig = configuration.GetSection("GameSettings:Rewards").Get<Dictionary<string, int>>() ??
+                                               throw new
+                                                   InvalidOperationException("Error loading GameSettings:Rewards from appsettings.json");
+        _rewardTable     = rewardConfig.ToDictionary(kvp => kvp.Key[0], kvp => kvp.Value);
+        _startingCredits = configuration.GetValue<int?>("GameSettings:StartingCredits") 
+                        ?? throw new InvalidOperationException("GameSettings:StartingCredits not set in appsettings.json");
+        _symbols         = new List<char>(_rewardTable.Keys.Count);
+        _symbols.AddRange(_rewardTable.Keys);
+    }
+
+    public int GetStartingCredits()
+    {
+        return _startingCredits;
     }
 
     public RollResult Roll(int credits)
@@ -22,9 +33,9 @@ public class GameService
             throw new InvalidOperationException("Not enough credits to play.");
         }
 
-        string[] symbols       = GenerateSymbols();
-        bool     isWinningRoll = IsWinningRoll(symbols);
-        int      reward        = CalculateReward(symbols, isWinningRoll);
+        char[] symbols       = GenerateSymbols();
+        bool   isWinningRoll = IsWinningRoll(symbols);
+        int    reward        = CalculateReward(symbols[0], isWinningRoll);
 
         // Cheating logic
         if (isWinningRoll && credits >= 40)
@@ -35,7 +46,7 @@ public class GameService
             {
                 symbols       = GenerateSymbols();
                 isWinningRoll = IsWinningRoll(symbols);
-                reward        = isWinningRoll ? CalculateReward(symbols, isWinningRoll) : 0;
+                reward        = isWinningRoll ? CalculateReward(symbols[0], isWinningRoll) : 0;
             }
         }
 
@@ -44,23 +55,14 @@ public class GameService
         return new RollResult(symbols, updatedCredits, isWinningRoll, GetRollResultMessage(isWinningRoll, reward));
     }
 
-    private static bool IsWinningRoll(string[] symbols)
+    private static bool IsWinningRoll(char[] symbols)
     {
         return symbols.Distinct().Count() == 1;
     }
 
-    private static int CalculateReward(string[] symbols, bool isWinning)
+    private int CalculateReward(char symbol, bool isWinning)
     {
-        if (!isWinning) return 0;
-
-        return symbols[0] switch
-        {
-            "C" => 10, // Cherry
-            "L" => 20, // Lemon
-            "O" => 30, // Orange
-            "W" => 40, // Watermelon
-            _ => 0
-        };
+        return !isWinning ? 0 : _rewardTable.GetValueOrDefault(symbol, 0);
     }
 
     private static string GetRollResultMessage(bool won, int reward)
@@ -68,13 +70,13 @@ public class GameService
         return won ? $"You won {reward}! credits" : "You lost!";
     }
 
-    private string[] GenerateSymbols()
+    private char[] GenerateSymbols()
     {
         return
         [
-            Symbols[_random.Next(Symbols.Length)],
-            Symbols[_random.Next(Symbols.Length)],
-            Symbols[_random.Next(Symbols.Length)]
+            _symbols[_random.Next(_symbols.Count)],
+            _symbols[_random.Next(_symbols.Count)],
+            _symbols[_random.Next(_symbols.Count)]
         ];
     }
 }

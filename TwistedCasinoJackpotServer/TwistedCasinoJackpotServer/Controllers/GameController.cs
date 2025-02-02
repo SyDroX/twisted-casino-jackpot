@@ -26,7 +26,7 @@ public class GameController : ControllerBase
 
             if (credits == 0)
             {
-                credits = 10;
+                credits = _gameService.GetStartingCredits();
                 HttpContext.Session.SetInt32("Credits", credits);
             }
 
