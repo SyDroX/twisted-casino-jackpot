@@ -1,5 +1,7 @@
+using Microsoft.Extensions.Options;
 using TwistedCasinoJackpotServer.Middleware;
 using TwistedCasinoJackpotServer.Services;
+using TwistedCasinoJackpotServer.Services.Configuration;
 
 namespace TwistedCasinoJackpotServer;
 
@@ -15,7 +17,8 @@ public static class Program
         builder.ConfigureAllowedHosts();
         builder.AddSessionService();
         builder.AddCorsService();
-
+        
+        builder.Services.Configure<GameSettings>(builder.Configuration.GetSection("GameSettings"));
         builder.Services.AddSingleton<GameService>();
 
         if (builder.Environment.IsDevelopment())
@@ -28,12 +31,15 @@ public static class Program
 
         app.UseMiddleware<RequestLoggingMiddleware>();
         app.UseMiddleware<ErrorHandlingMiddleware>();
-
+        
+        app.ValidateGameSettings();
+        
         app.UseSession();
         app.UseRouting();
         app.UseAuthorization();
         app.MapControllers();
-
+        
+        
         if (app.Environment.IsDevelopment())
         {
            app.UseDevelopmentSettings();
@@ -42,7 +48,7 @@ public static class Program
         {
             app.UseProductionSettings();
         }
-
+        
         app.UseCors(CorsPolicyName);
         app.Run();
     }
@@ -106,6 +112,32 @@ public static class Program
                                   }
                               });
         });
+    }
+
+    private static void ValidateGameSettings(this WebApplication app)
+    {
+        // Validate configuration after binding
+        GameSettings? gameSettings = app.Services.GetRequiredService<IOptions<GameSettings>>().Value;
+
+        if (gameSettings == null)
+        {
+            throw new InvalidOperationException("GameSettings configuration is missing in appsettings.json.");
+        }
+
+        if (gameSettings.StartingCredits <= 0)
+        {
+            throw new InvalidOperationException("GameSettings:StartingCredits must be greater than zero.");
+        }
+
+        if (gameSettings.Rewards == null || gameSettings.Rewards.Count == 0)
+        {
+            throw new InvalidOperationException("GameSettings:Rewards is missing or empty.");
+        }
+
+        if (gameSettings.CheatingRules == null || gameSettings.CheatingRules.Count == 0)
+        {
+            throw new InvalidOperationException("GameSettings:CheatingRules is missing or empty.");
+        }
     }
 
     private static void UseDevelopmentSettings(this WebApplication app)
