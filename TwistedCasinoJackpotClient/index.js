@@ -13,7 +13,7 @@ async function startGame() {
 }
 
 async function rollSlots() {
-    const slotIds = ["slot1", "slot2", "slot3"];
+    const slotIds = getSlotIds();
 
     setInitialSlotsValue(slotIds, "X");
     toggleButtons()
@@ -30,6 +30,7 @@ async function cashOut() {
     const data = await sendRequest("cashout", "POST", "cash out");
     if (data.message) {
         clearMessage();
+        setInitialSlotsValue(getSlotIds(), "X");
         alert(data.message);
         startGame();
     }
@@ -48,6 +49,10 @@ async function sendRequest(url, method, defaultErrorText) {
     } catch (error) {
         showMessage(error.message || formatString(errorFormat, {defaultErrorText: defaultErrorText}));
     }
+}
+
+function getSlotIds(){
+    return ["slot1", "slot2", "slot3"];
 }
 
 function formatString(template, params) {
