@@ -9,13 +9,10 @@ public static class Program
 
     public static void Main(string[] args)
     {
-        WebApplicationBuilder builder      = WebApplication.CreateBuilder(args);
-        string?               allowedHosts = builder.Configuration["AllowedHosts"];
-
-        builder.WebHost.UseKestrel()
-               .UseSetting("AllowedHosts", allowedHosts);
-        builder.Services.AddDistributedMemoryCache();
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddDistributedMemoryCache(); // Ensure session storage is available
         builder.Services.AddControllers();
+        builder.ConfigureAllowedHosts();
         builder.AddSessionService();
         builder.AddCorsService();
 
@@ -39,22 +36,28 @@ public static class Program
 
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwaggerUI(c =>
-            {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Twisted Casino Jackpot API v1");
-                c.RoutePrefix = string.Empty; // Access Swagger UI at the root (http://localhost:XXXX/)
-            });
-            app.UseSwagger();
-
+           app.UseDevelopmentSettings();
         }
         else
         {
-            app.UseHttpsRedirection();
-
+            app.UseProductionSettings();
         }
 
         app.UseCors(CorsPolicyName);
         app.Run();
+    }
+
+    private static void ConfigureAllowedHosts(this WebApplicationBuilder builder)
+    {
+        string? allowedHosts = builder.Configuration["AllowedHosts"];
+
+        if (allowedHosts == null)
+        {
+            throw new Exception("AllowedHosts is not set in appsettings.json");
+        }
+
+        builder.WebHost.UseKestrel()
+               .UseSetting("AllowedHosts", allowedHosts);
     }
 
     private static void AddSessionService(this WebApplicationBuilder builder)
@@ -103,5 +106,20 @@ public static class Program
                                   }
                               });
         });
+    }
+
+    private static void UseDevelopmentSettings(this WebApplication app)
+    {
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint("/swagger/v1/swagger.json", "Twisted Casino Jackpot API v1");
+            c.RoutePrefix = string.Empty; // Access Swagger UI at the root (http://localhost:XXXX/)
+        });
+        app.UseSwagger();
+    }
+
+    private static void UseProductionSettings(this WebApplication app)
+    {
+        app.UseHttpsRedirection();
     }
 }
