@@ -22,13 +22,19 @@ public class GameController : ControllerBase
     {
         try
         {
-            HttpContext.Session.SetInt32("Credits", 10);
+            int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
 
-            return Ok(new { Credits = 10 });
+            if (credits == 0)
+            {
+                credits = 10;
+                HttpContext.Session.SetInt32("Credits", credits);
+            }
+
+            return Ok(new { Credits = credits });
         }
         catch (Exception exception)
         {
-            return HandleException(exception, "starting the game");
+            return HandleExceptionResult(exception, "starting the game");
         }
     }
 
@@ -55,7 +61,7 @@ public class GameController : ControllerBase
         }
         catch (Exception exception)
         {
-            return HandleException(exception, "rolling");
+            return HandleExceptionResult(exception, "rolling");
         }
     }
 
@@ -76,11 +82,11 @@ public class GameController : ControllerBase
         }
         catch (Exception ex)
         {
-            return HandleException(ex, "cashing out");
+            return HandleExceptionResult(ex, "cashing out");
         }
     }
 
-    private ObjectResult HandleException(Exception ex, string errorName)
+    private ObjectResult HandleExceptionResult(Exception ex, string errorName)
     {
         const string errorForUserFormat = "An error occurred while {0}. Please try again later.";
         const string errorForLogFormat  = "Error {0}.";

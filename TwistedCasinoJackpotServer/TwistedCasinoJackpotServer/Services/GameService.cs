@@ -41,7 +41,7 @@ public class GameService
 
         int updatedCredits = isWinningRoll ? credits + reward : credits - 1;
 
-        return new RollResult(symbols, updatedCredits, isWinningRoll, reward, GetRollResultMessage(isWinningRoll));
+        return new RollResult(symbols, updatedCredits, isWinningRoll, GetRollResultMessage(isWinningRoll, reward));
     }
 
     private static bool IsWinningRoll(string[] symbols)
@@ -63,9 +63,9 @@ public class GameService
         };
     }
 
-    private static string GetRollResultMessage(bool won)
+    private static string GetRollResultMessage(bool won, int reward)
     {
-        return won ? "You won!" : "You lost!";
+        return won ? $"You won {reward}! credits" : "You lost!";
     }
 
     private string[] GenerateSymbols()
