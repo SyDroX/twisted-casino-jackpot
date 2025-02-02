@@ -14,15 +14,19 @@ async function startGame() {
 
 async function rollSlots() {
     const slotIds = getSlotIds();
+    const defaultErrorText = "roll the slots";
 
     setInitialSlotsValue(slotIds, "X");
     toggleButtons()
     clearMessage();
 
-    const data = await sendRequest("roll", "POST", "roll the slots");
+    const data = await sendRequest("roll", "POST", defaultErrorText);
 
     if (data.symbols) {
         handleRollResponse(slotIds, data);
+    } else {
+        showMessage(data.message ||  formatString(errorFormat, {defaultErrorText: defaultErrorText}));
+        toggleButtons();
     }
 }
 
