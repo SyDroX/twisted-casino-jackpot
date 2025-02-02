@@ -8,15 +8,14 @@ public class GameService
     private readonly Dictionary<char, int> _rewardTable;
     private readonly int                   _startingCredits;
     private readonly List<char>            _symbols;
+    
+    private readonly List<(int MinCredits, double CheatChance)> _cheatingRules;
 
     public GameService(IConfiguration configuration)
     {
-        Dictionary<string, int> rewardConfig = configuration.GetSection("GameSettings:Rewards").Get<Dictionary<string, int>>() ??
-                                               throw new
-                                                   InvalidOperationException("Error loading GameSettings:Rewards from appsettings.json");
-        _rewardTable     = rewardConfig.ToDictionary(kvp => kvp.Key[0], kvp => kvp.Value);
-        _startingCredits = configuration.GetValue<int?>("GameSettings:StartingCredits") 
-                        ?? throw new InvalidOperationException("GameSettings:StartingCredits not set in appsettings.json");
+        _startingCredits = ConfigureStartingCredits(configuration);
+        _cheatingRules   = ConfigureCheatingRules(configuration);
+        _rewardTable     = ConfigureRewards(configuration);
         _symbols         = new List<char>(_rewardTable.Keys.Count);
         _symbols.AddRange(_rewardTable.Keys);
     }
@@ -37,17 +36,14 @@ public class GameService
         bool   isWinningRoll = IsWinningRoll(symbols);
         int    reward        = CalculateReward(symbols[0], isWinningRoll);
 
-        // Cheating logic
-        if (isWinningRoll && credits >= 40)
+        // Apply cheating logic dynamically based on config
+        double cheatChance = GetCheatChance(credits);
+        
+        if (isWinningRoll && cheatChance > 0 && _random.NextDouble() < cheatChance)
         {
-            double cheatChance = credits >= 60 ? 0.6 : 0.3;
-
-            if (_random.NextDouble() < cheatChance && reward > 0)
-            {
-                symbols       = GenerateSymbols();
-                isWinningRoll = IsWinningRoll(symbols);
-                reward        = isWinningRoll ? CalculateReward(symbols[0], isWinningRoll) : 0;
-            }
+            symbols       = GenerateSymbols();
+            isWinningRoll = IsWinningRoll(symbols);
+            reward        = isWinningRoll ? CalculateReward(symbols[0], isWinningRoll) : 0;
         }
 
         int updatedCredits = isWinningRoll ? credits + reward : credits - 1;
@@ -68,6 +64,38 @@ public class GameService
     private static string GetRollResultMessage(bool won, int reward)
     {
         return won ? $"You won {reward}! credits" : "You lost!";
+    }
+
+    private static int ConfigureStartingCredits(IConfiguration configuration)
+    {
+        return configuration.GetValue<int?>("GameSettings:StartingCredits") ??
+               throw new InvalidOperationException("GameSettings:StartingCredits not set in appsettings.json");
+    }
+
+    private static Dictionary<char, int> ConfigureRewards(IConfiguration configuration)
+    {
+        Dictionary<string, int> rewardConfig = configuration.GetSection("GameSettings:Rewards").Get<Dictionary<string, int>>() ??
+                                               throw new
+                                                   InvalidOperationException("Error loading GameSettings:Rewards from appsettings.json");
+
+        return rewardConfig.ToDictionary(pair => pair.Key[0], pair => pair.Value);
+    }
+
+    private static List<(int, double)> ConfigureCheatingRules(IConfiguration configuration)
+    {
+        // Load cheating rules as a List of Tuples 
+        return configuration.GetSection("GameSettings:CheatingRules")
+                            .Get<List<Dictionary<string, double>>>()?
+                            .Select(rule => ((int)rule["MinCredits"], rule["CheatChance"]))
+                            .OrderBy(rule => rule.Item1) // Ensure ordered ascending
+                            .ToList() ??
+               throw new InvalidOperationException("Error loading GameSettings:CheatingRules from appsettings.json");
+    }
+    
+    private double GetCheatChance(int credits)
+    {
+        // Find the highest matching rule
+        return _cheatingRules.LastOrDefault(rule => credits >= rule.MinCredits).CheatChance;
     }
 
     private char[] GenerateSymbols()
