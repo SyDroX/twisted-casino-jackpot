@@ -1,66 +1,52 @@
 // Configurable API base URL and port
 const apiBaseUrl = `http://localhost:5001`;
 const gameApiUrl = `${apiBaseUrl}/Game`;
-const errorFormat = "Failed to {errorName}. Please try again later.";
+const errorFormat = "Failed to {defaultErrorText}. Please try again later.";
 
-// Start the game by initializing credits
+
 async function startGame() {
-    try {
-        const response = await fetch(`${gameApiUrl}/start`, {
-            method: "GET",
-            credentials: "include", // Ensures cookies are sent with the request
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
+    const data = await sendRequest("start", "GET", "start the game");
 
-        const data = await response.json();
+    if (data.credits) {
         updateCredits(data.credits);
-    } catch (error) {
-        showMessage(error.message || formatString(errorFormat, {errorName: "start the game"}));
     }
 }
 
-// Roll the slot machine
 async function rollSlots() {
-    setInitialSlotsValue("X");
+    const slotIds = ["slot1", "slot2", "slot3"];
+
+    setInitialSlotsValue(slotIds, "X");
     toggleButtons()
     clearMessage();
 
-    try {
-        const response = await fetch(`${gameApiUrl}/roll`, {
-            method: "POST",
-            credentials: "include", // Ensures cookies are sent with the request
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
+    const data = await sendRequest("roll", "POST", "roll the slots");
 
-        const data = await response.json();
-
-        if (data.symbols) {
-            handleRollResponse(rollButton, slotIds, data);
-        }
-    } catch (error) {
-        showMessage(error.message || formatString(errorFormat, {errorName: "roll"}));
-        toggleButtons();
+    if (data.symbols) {
+        handleRollResponse(slotIds, data);
     }
 }
 
 async function cashOut() {
+    const data = await sendRequest("cashout", "POST", "cash out");
+    if (data.message) {
+        clearMessage();
+        alert(data.message);
+        startGame();
+    }
+}
+
+async function sendRequest(url, method, defaultErrorText) {
     try {
-        const response = await fetch(`${gameApiUrl}/cashout`, {
-            method: "POST",
+        const response = await fetch(`${gameApiUrl}/${url}`, {
+            method: method,
             credentials: "include", // Ensures cookies are sent with the request
             headers: {
                 "Content-Type": "application/json",
             }
         });
-        const data = await response.json();
-        alert(data.message);
-        startGame();
+        return await response.json();
     } catch (error) {
-        showMessage(error.message || formatString(errorFormat, {errorName: "cash out"}));
+        showMessage(error.message || formatString(errorFormat, {defaultErrorText: defaultErrorText}));
     }
 }
 
@@ -76,19 +62,17 @@ function animateSlots(slotIds, symbols, spinDelay) {
     });
 }
 
-function toggleButtons(){
+function toggleButtons() {
     const buttons =
-        [document.getElementById("rollButton"),
-        document.getElementById("cashOutButton")];
+        [document.getElementById("rollButton"), document.getElementById("cashOutButton")];
     buttons.forEach(button => button.disabled = !button.disabled);
 }
 
-function setInitialSlotsValue(value) {
-    const slotIds = ["slot1", "slot2", "slot3"];
+function setInitialSlotsValue(slotIds, value) {
     slotIds.forEach((id) => (document.getElementById(id).textContent = value));
 }
 
-function handleRollResponse(rollButton, slotIds, data) {
+function handleRollResponse(slotIds, data) {
     const slotCount = slotIds.length;
     const spinDelay = 1000; // Delay for each slot (1 second per slot)
     const bufferTime = 1000; // Additional buffer after the animation
@@ -100,7 +84,7 @@ function handleRollResponse(rollButton, slotIds, data) {
         updateCredits(data.credits);
         showMessage(data.message, data.isWinning);
 
-        rollButton.disabled = false;
+        toggleButtons();
     }, totalDelay);
 }
 
