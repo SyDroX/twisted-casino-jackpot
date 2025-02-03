@@ -57,6 +57,14 @@ public class GameController : ControllerBase
 
             return Ok(result);
         }
+        catch (OutOfCreditsException exception)
+        {
+            return Ok(new
+            { 
+                exception.Message,
+                Credits = 0
+            });
+        }
         catch (Exception exception)
         {
             return HandleExceptionResult(exception, errorName);

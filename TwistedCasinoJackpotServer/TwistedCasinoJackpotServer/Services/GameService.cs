@@ -4,6 +4,8 @@ using TwistedCasinoJackpotServer.Services.Configuration;
 
 namespace TwistedCasinoJackpotServer.Services;
 
+public class OutOfCreditsException(string message) : Exception(message);
+
 public class GameService
 {
     private readonly Random       _random;
@@ -27,7 +29,7 @@ public class GameService
     {
         if (credits <= 0)
         {
-            throw new InvalidOperationException("Not enough credits to play.");
+            throw new OutOfCreditsException("Not enough credits to play.");
         }
 
         char[] symbols       = GenerateSymbols();
