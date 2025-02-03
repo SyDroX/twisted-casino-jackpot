@@ -50,7 +50,7 @@ public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
         var result   = await response.Content.ReadFromJsonAsync<JsonElement>();
         
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Contains("You have no more credits to play.", result.GetProperty("message").GetString());
+        Assert.Contains("Not enough credits to play", result.GetProperty("message").GetString());
     }
 
     [Fact]

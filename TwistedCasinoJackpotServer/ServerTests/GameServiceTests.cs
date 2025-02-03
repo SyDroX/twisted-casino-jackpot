@@ -76,7 +76,7 @@ public class GameServiceTests
     [Fact]
     public void Roll_WithZeroCredits_ShouldThrowException()
     {
-        Assert.Throws<InvalidOperationException>(() => _gameService.Roll(0));
+        Assert.Throws<OutOfCreditsException>(() => _gameService.Roll(0));
     }
 
     [Xunit.Theory]
