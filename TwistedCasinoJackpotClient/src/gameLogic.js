@@ -20,7 +20,7 @@ export async function startGame() {
 
     if (!data) return;
 
-    if (data.credits) {
+    if (data.credits !== undefined) {
         updateCredits(data.credits);
     } else{
         showMessage(data.message || formatString(errorFormat, { defaultErrorText }));
@@ -53,7 +53,7 @@ export async function cashOut() {
 
     if (!data) return;
 
-    if (data.credits) {
+    if (data.credits !== undefined) {
         clearMessage();
         setInitialSlotsValue(getSlotIds(), "X");
         alert(data.message);
