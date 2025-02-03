@@ -4,8 +4,11 @@
     setInitialSlotsValue,
     showMessage,
     toggleButtons,
-    updateCredits
+    updateCredits,
+    getSlotIds,
+    formatString
 } from "./uiHandler.js";
+
 
 const apiBaseUrl = `http://localhost:5001`;
 const gameApiUrl = `${apiBaseUrl}/Game`;
@@ -57,12 +60,4 @@ async function sendRequest(url, method, defaultErrorText) {
     } catch (error) {
         showMessage(error.message || formatString(errorFormat, { defaultErrorText }));
     }
-}
-
-export function formatString(template, params) {
-    return template.replace(/{(\w+)}/g, (match, key) => params[key] || match);
-}
-
-export function getSlotIds() {
-    return ["slot1", "slot2", "slot3"];
 }

@@ -53,3 +53,12 @@ export function clearMessage() {
     messageContainer.classList.add("hidden");
     messageContainer.classList.remove("win");
 }
+
+export function formatString(template, params) {
+    return template.replace(/{(\w+)}/g, (match, key) => params[key] || match);
+}
+
+export function getSlotIds() {
+    return ["slot1", "slot2", "slot3"];
+}
+
