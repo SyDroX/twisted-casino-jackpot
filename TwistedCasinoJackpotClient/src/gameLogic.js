@@ -15,9 +15,13 @@ const gameApiUrl = `${apiBaseUrl}/Game`;
 const errorFormat = "Failed to {defaultErrorText}. Please try again later.";
 
 export async function startGame() {
-    const data = await sendRequest("start", "GET", "start the game");
+    const defaultErrorText = "start the game";
+    const data = await sendRequest("start", "GET", defaultErrorText);
+
     if (data.credits) {
         updateCredits(data.credits);
+    } else{
+        showMessage(data.message || formatString(errorFormat, { defaultErrorText }));
     }
 }
 
@@ -40,12 +44,17 @@ export async function rollSlots() {
 }
 
 export async function cashOut() {
-    const data = await sendRequest("cashout", "POST", "cash out");
-    if (data.message) {
+    const defaultErrorText = "cash out";
+    const data = await sendRequest("cashout", "POST", defaultErrorText);
+
+    if (data.credits) {
         clearMessage();
         setInitialSlotsValue(getSlotIds(), "X");
         alert(data.message);
-        startGame();
+
+        await startGame();
+    } else {
+        showMessage(data.message || formatString(errorFormat, { defaultErrorText:defaultErrorText }))
     }
 }
 
@@ -56,6 +65,7 @@ async function sendRequest(url, method, defaultErrorText) {
             credentials: "include",
             headers: { "Content-Type": "application/json" }
         });
+
         return await response.json();
     } catch (error) {
         showMessage(error.message || formatString(errorFormat, { defaultErrorText }));
