@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc.Testing;
 using TwistedCasinoJackpotServer.Entities;
 using Xunit;
 using Assert = Xunit.Assert;
@@ -10,7 +9,7 @@ namespace ServerTests;
 
 public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
 {
-    private HttpClient _client;
+    private readonly HttpClient                _client;
     private readonly TestWebApplicationFactory _factory;
 
     public GameControllerTests(TestWebApplicationFactory factory)
@@ -30,7 +29,7 @@ public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
     }
     
     [Fact]
-    public async Task Roll_ShouldReturnNewCredits_WhenRollSucceeds()
+    public async Task Roll_ShouldRollResult_WhenRollSucceeds()
     {
         _factory.SetSessionValue("Credits", 10);
         
@@ -38,6 +37,8 @@ public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
         var result   = await response.Content.ReadFromJsonAsync<RollResult>();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.NotNull(result);
+        Assert.Equal(3, result.Symbols.Length);
         Assert.True(result.Credits > 0);
     }
 
@@ -48,7 +49,6 @@ public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
         HttpResponseMessage response = await _client.PostAsync("/Game/roll", null);
         var result   = await response.Content.ReadFromJsonAsync<JsonElement>();
         
-
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("You have no more credits to play.", result.GetProperty("message").GetString());
     }
