@@ -52,4 +52,27 @@ public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Contains("You have no more credits to play.", result.GetProperty("message").GetString());
     }
+
+    [Fact]
+    public async Task CashOut_ShouldReturnCashedOutCredits()
+    {
+        const int credits = 10;
+        _factory.SetSessionValue("Credits", credits);
+        HttpResponseMessage response = await _client.PostAsync("/Game/cashout", null);
+        var                 result   = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.OK,                                  response.StatusCode);
+        Assert.Equal(credits,                                            result.GetProperty("credits").GetInt32());
+        Assert.Equal($"Cashed out successfully with {credits} credits!", result.GetProperty("message").GetString());
+    }
+
+    [Fact]
+    public async Task CashOut_ShouldHandleException()
+    {
+        HttpResponseMessage response = await _client.PostAsync("/Game/cashout", null);
+        var                 result   = await response.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Contains("An error occurred while cashing out.", result.GetProperty("message").GetString());
+    }
 }
