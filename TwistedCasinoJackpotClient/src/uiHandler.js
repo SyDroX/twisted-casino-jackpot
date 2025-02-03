@@ -1,4 +1,4 @@
-﻿export function animateSlots(slotIds, symbols, spinDelay) {
+﻿function animateSlots(slotIds, symbols, spinDelay) {
     slotIds.forEach((id, index) => {
         setTimeout(() => {
             document.getElementById(id).textContent = symbols[index];
