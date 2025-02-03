@@ -4,7 +4,7 @@ namespace ServerTests;
 
 public class GameSettingsTestHelper
 {
-    public static GameSettings GameSettingsMock =  new GameSettings
+    public static readonly GameSettings GameSettingsMock =  new GameSettings
     {
         StartingCredits = 10,
         Rewards = new Dictionary<string, int>
