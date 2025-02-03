@@ -5,6 +5,12 @@ using TwistedCasinoJackpotServer.Services.Configuration;
 
 namespace TwistedCasinoJackpotServer;
 
+public class ProgramTestEntry
+{
+    public static void TestMain() => Program.Main([]);
+}
+
+
 public static class Program
 {
     private const string CorsPolicyName = "DynamicCorsPolicy";
