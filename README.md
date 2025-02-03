@@ -81,17 +81,6 @@ cd TwistedCasinoJackpotServer.Tests
 dotnet test
 ```
 
-### **🔹 Step 3: Run a Specific Test**
-To run a test with a specific name:
-```sh
-dotnet test --filter DisplayName~Roll_ShouldReturnNewCredits
-```
-
-### **🔹 Step 4: Run Tests with Logs**
-```sh
-dotnet test --logger "console;verbosity=detailed"
-```
-
 ---
 
 ## 🧪 Running Frontend Tests (Jest)
@@ -114,11 +103,6 @@ npm test
 ### **🔹 Step 4: Run a Specific Frontend Test**
 ```sh
 npx jest gameLogic.test.js
-```
-
-### **🔹 Step 5: Run Tests with Coverage**
-```sh
-npx jest --coverage
 ```
 
 ---
