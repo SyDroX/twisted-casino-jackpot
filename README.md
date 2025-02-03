@@ -4,6 +4,22 @@ A full-stack web application for an online slot machine game where **the house a
 
 ---
 
+## 📌 Technologies Used
+
+### **Frontend (Client)**
+- **JavaScript (Vanilla JS)** – Simple, lightweight client logic
+- **HTML & CSS** – Basic UI layout & styling
+- **Fetch API** – Communicates with the backend via HTTP requests
+- **Jest** – Unit testing for frontend logic
+
+### **Backend (Server)**
+- **C# (.NET 8, ASP.NET Core Web API)** – Backend logic & game rules
+- **Session Storage** – Keeps track of game state per player
+- **Swagger** – API documentation & testing
+- **xUnit & Moq** – Unit & integration testing
+
+---
+
 ## 🚀 How to Run the App
 
 ### **🔹 Prerequisites**
