@@ -6,15 +6,16 @@ namespace TwistedCasinoJackpotServer.Services;
 
 public class GameService
 {
-    private readonly Random       _random = new();
+    private readonly Random       _random;
     private readonly GameSettings _gameSettings;
     private readonly List<char>   _symbols;
 
-    public GameService(IOptions<GameSettings> gameSettings)
+    public GameService(IOptions<GameSettings> gameSettings, Random? random = null)
     {
         _gameSettings = gameSettings.Value;
         _symbols      = new List<char>(_gameSettings.Rewards.Keys.Count);
         _symbols.AddRange(_gameSettings.Rewards.Keys.Select(key => key[0]));
+        _random       = random ?? new Random();
     }
 
     public int GetStartingCredits()
@@ -65,8 +66,9 @@ public class GameService
     
     private double GetCheatChance(int credits)
     {
-        // Find the highest matching rule, !null suppressed, there is validation in program.cs 
-        return _gameSettings.CheatingRules.LastOrDefault(rule => credits >= rule.MinCredits)!.CheatChance;
+        CheatingRule? cheatRule = _gameSettings.CheatingRules.LastOrDefault(rule => credits >= rule.MinCredits);
+        
+        return cheatRule?.CheatChance ?? 0 ;
     }
 
     private char[] GenerateSymbols()
