@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Microsoft.Extensions.Options;
+using ServerTests;
 using TwistedCasinoJackpotServer;
 using TwistedCasinoJackpotServer.Controllers;
 using TwistedCasinoJackpotServer.Services;
@@ -24,24 +25,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<ProgramTestEntry>
             }
 
             var mockGameSettings = new Mock<IOptions<GameSettings>>();
-            var gameSettings = new GameSettings
-            {
-                StartingCredits = 10,
-                Rewards         = new Dictionary<string, int> { { "C", 10 }, { "L", 20 }, { "O", 30 }, { "W", 40 } },
-                CheatingRules =
-                [
-                    new CheatingRule
-                    {
-                        MinCredits  = 40,
-                        CheatChance = 0.3
-                    },
-                    new CheatingRule
-                    {
-                        MinCredits  = 60,
-                        CheatChance = 0.6
-                    }
-                ]
-            };
+            GameSettings gameSettings     = GameSettingsTestHelper.GameSettingsMock;
             
             mockGameSettings.Setup(gs => gs.Value).Returns(gameSettings);
             services.AddSingleton(new GameService(mockGameSettings.Object, new Random()));
