@@ -1,4 +1,4 @@
-﻿function animateSlots(slotIds, symbols, spinDelay) {
+﻿export function animateSlots(slotIds, symbols, spinDelay) {
     slotIds.forEach((id, index) => {
         setTimeout(() => {
             document.getElementById(id).textContent = symbols[index];
@@ -50,6 +50,7 @@ export function showMessage(message, isWinning = false) {
 
 export function clearMessage() {
     const messageContainer = document.getElementById("message");
+    messageContainer.textContent = "";
     messageContainer.classList.add("hidden");
     messageContainer.classList.remove("win");
 }
