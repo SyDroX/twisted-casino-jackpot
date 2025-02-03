@@ -68,7 +68,13 @@ public class GameController : ControllerBase
     [HttpPost("cashout")]
     public IActionResult CashOut()
     {
-        int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
+        int? credits = HttpContext.Session.GetInt32("Credits");
+
+        if (credits == null)
+        {
+            return HandleExceptionResult(new InvalidOperationException("Attempt to cashout without valid session with credits."), 
+                                         "cashing out");
+        }
 
         try
         {
