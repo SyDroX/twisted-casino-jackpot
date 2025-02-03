@@ -18,6 +18,8 @@ export async function startGame() {
     const defaultErrorText = "start the game";
     const data = await sendRequest("start", "GET", defaultErrorText);
 
+    if (!data) return;
+
     if (data.credits) {
         updateCredits(data.credits);
     } else{
@@ -35,6 +37,8 @@ export async function rollSlots() {
 
     const data = await sendRequest("roll", "POST", defaultErrorText);
 
+    if (!data) return;
+
     if (data.symbols) {
         handleRollResponse(slotIds, data);
     } else {
@@ -46,6 +50,8 @@ export async function rollSlots() {
 export async function cashOut() {
     const defaultErrorText = "cash out";
     const data = await sendRequest("cashout", "POST", defaultErrorText);
+
+    if (!data) return;
 
     if (data.credits) {
         clearMessage();
@@ -68,6 +74,10 @@ async function sendRequest(url, method, defaultErrorText) {
 
         return await response.json();
     } catch (error) {
-        showMessage(error.message || formatString(errorFormat, { defaultErrorText }));
+        if (error){
+            showMessage(error.message || formatString(errorFormat, { defaultErrorText }));
+        } else {
+            showMessage(formatString(errorFormat, { defaultErrorText }));
+        }
     }
 }
