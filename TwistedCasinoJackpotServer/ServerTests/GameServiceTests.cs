@@ -11,10 +11,9 @@ namespace ServerTests;
 
 public class GameServiceTests
 {
-    private readonly Mock<Random>                 _mockRandom;
-    private readonly GameService                  _gameService;
-    private readonly Mock<IOptions<GameSettings>> _mockGameSettings;
-    private readonly GameSettings                 _testSettings;
+    private readonly Mock<Random> _mockRandom;
+    private readonly GameService  _gameService;
+    private readonly GameSettings _testSettings;
 
     public GameServiceTests()
     {
@@ -43,11 +42,11 @@ public class GameServiceTests
             ]
         };
 
-        _mockGameSettings = new Mock<IOptions<GameSettings>>();
-        _mockGameSettings.Setup(gs => gs.Value).Returns(_testSettings);
+        var mockGameSettings = new Mock<IOptions<GameSettings>>();
+        mockGameSettings.Setup(gs => gs.Value).Returns(_testSettings);
 
         _mockRandom  = new Mock<Random>();
-        _gameService = new GameService(_mockGameSettings.Object, _mockRandom.Object);
+        _gameService = new GameService(mockGameSettings.Object, _mockRandom.Object);
     }
 
     [Fact]
@@ -57,19 +56,19 @@ public class GameServiceTests
 
         Assert.Equal(10, startingCredits);
     }
-    
+
     [Fact]
     public void Roll_WithLosingSymbols_ShouldDeductCredits()
     {
         // Mock random to pick different indices for slots (not a win)
         _mockRandom
             .SetupSequence(r => r.Next(It.IsAny<int>()))
-            .Returns(0)  // First symbol (C)
-            .Returns(1)  // Second symbol (L)
+            .Returns(0) // First symbol (C)
+            .Returns(1) // Second symbol (L)
             .Returns(2); // Third symbol (O) - Different symbols mean no win
 
-        const int initialCredits = 10;
-        RollResult       result         = _gameService.Roll(initialCredits);
+        const int  initialCredits = 10;
+        RollResult result         = _gameService.Roll(initialCredits);
 
         Assert.False(result.IsWinning);
         Assert.Equal(initialCredits - 1, result.Credits); // Loses 1 credit
@@ -80,11 +79,11 @@ public class GameServiceTests
     {
         _mockRandom
             .SetupSequence(r => r.Next(It.IsAny<int>()))
-            .Returns(0)  // First roll: Winning 
-            .Returns(0)  
+            .Returns(0) // First roll: Winning 
             .Returns(0)
-            .Returns(1)  // Second roll: loosing
-            .Returns(2)  
+            .Returns(0)
+            .Returns(1) // Second roll: loosing
+            .Returns(2)
             .Returns(3);
 
         _mockRandom.Setup(r => r.NextDouble()).Returns(0.2);
@@ -95,14 +94,14 @@ public class GameServiceTests
         Assert.False(result.IsWinning); // Cheat should make it a loss
         Assert.Equal(initialCredits - 1, result.Credits);
     }
-    
-    
+
+
     [Fact]
     public void Roll_WithZeroCredits_ShouldThrowException()
     {
         Assert.Throws<InvalidOperationException>(() => _gameService.Roll(0));
     }
-    
+
     [Xunit.Theory]
     [InlineData('C', true,  10)] // Cherry wins 10 credits
     [InlineData('L', true,  20)] // Lemon wins 20 credits
@@ -118,7 +117,7 @@ public class GameServiceTests
         {
             // Find the valid index for the winning symbol
             int symbolIndex = symbolsList.IndexOf(symbol);
-            
+
             // Mock Random to always roll a winning combination
             _mockRandom
                 .SetupSequence(r => r.Next(It.IsAny<int>()))
@@ -136,8 +135,8 @@ public class GameServiceTests
                 .Returns(2); // 'O'
         }
 
-        const int initialCredits = 10;
-        RollResult       result         = _gameService.Roll(initialCredits);
+        const int  initialCredits = 10;
+        RollResult result         = _gameService.Roll(initialCredits);
 
         if (isWinning)
         {
@@ -150,7 +149,7 @@ public class GameServiceTests
             Assert.Equal(initialCredits - 1, result.Credits);
         }
     }
-    
+
     [Xunit.Theory]
     [InlineData(39, 0)]
     [InlineData(40, 0.3)]
@@ -160,10 +159,10 @@ public class GameServiceTests
     {
         // Use reflection to access the private method
         MethodInfo? methodInfo = typeof(GameService).GetMethod("GetCheatChance", BindingFlags.NonPublic | BindingFlags.Instance);
-        
+
         if (methodInfo == null)
             throw new Exception("GetCheatChance() method not found.");
-        
+
         // Call GetCheatChance() using reflection
         var cheatChance = (double)(methodInfo.Invoke(_gameService, [credits]) ?? throw new Exception("GetCheatChance() returned null."));
 
