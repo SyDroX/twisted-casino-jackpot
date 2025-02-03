@@ -76,7 +76,7 @@ public class GameController : ControllerBase
 
             return Ok(new
             {
-                Message = "Cashed out successfully!",
+                Message = $"Cashed out successfully with {credits} credits!",
                 Credits = credits
             });
         }
