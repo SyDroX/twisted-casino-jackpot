@@ -1,5 +1,8 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
+using Microsoft.AspNetCore.Mvc.Testing;
+using TwistedCasinoJackpotServer.Entities;
 using Xunit;
 using Assert = Xunit.Assert;
 
@@ -7,11 +10,13 @@ namespace ServerTests;
 
 public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
 {
-    private readonly HttpClient _client;
+    private HttpClient _client;
+    private readonly TestWebApplicationFactory _factory;
 
     public GameControllerTests(TestWebApplicationFactory factory)
     {
-        _client = factory.CreateClient();
+        _factory = factory;
+        _client  = _factory.CreateClient();
     }
 
     [Fact]
@@ -23,14 +28,28 @@ public class GameControllerTests : IClassFixture<TestWebApplicationFactory>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal(10,                result?.GetProperty("credits").GetInt32());
     }
+    
+    [Fact]
+    public async Task Roll_ShouldReturnNewCredits_WhenRollSucceeds()
+    {
+        _factory.SetSessionValue("Credits", 10);
+        
+        HttpResponseMessage response = await _client.PostAsync("/Game/roll", null);
+        var result   = await response.Content.ReadFromJsonAsync<RollResult>();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.True(result.Credits > 0);
+    }
 
     [Fact]
-    public async Task StartGame_ShouldHandleException()
+    public async Task Roll_ShouldReturnErrorMessage_WhenNoCredits()
     {
-        HttpResponseMessage response = await _client.GetAsync("/Game/start");
-        var result   = await response.Content.ReadFromJsonAsync<dynamic>();
+        _factory.SetSessionValue("Credits", 0);
+        HttpResponseMessage response = await _client.PostAsync("/Game/roll", null);
+        var result   = await response.Content.ReadFromJsonAsync<JsonElement>();
+        
 
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        Assert.Contains("An error occurred while starting the game.", (string)result!.Message);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("You have no more credits to play.", result.GetProperty("message").GetString());
     }
 }
