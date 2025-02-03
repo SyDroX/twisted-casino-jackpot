@@ -41,39 +41,38 @@ public class GameController : ControllerBase
     [HttpPost("roll")]
     public IActionResult Roll()
     {
-        int credits = HttpContext.Session.GetInt32("Credits") ?? 0;
+        const string errorName = "rolling";
+        int? credits = HttpContext.Session.GetInt32("Credits");
 
-        if (credits <= 0)
+        if (credits == null)
         {
-            return Ok(new
-            {
-                Message = "You have no more credits to play. Please restart the game.",
-                Credits = 0
-            });
+            return HandleExceptionResult(new InvalidOperationException("Call to roll without a valid session with credits."), 
+                                         errorName);
         }
 
         try
         {
-            RollResult result = _gameService.Roll(credits);
+            RollResult result = _gameService.Roll((int)credits);
             HttpContext.Session.SetInt32("Credits", result.Credits);
 
             return Ok(result);
         }
         catch (Exception exception)
         {
-            return HandleExceptionResult(exception, "rolling");
+            return HandleExceptionResult(exception, errorName);
         }
     }
 
-    [HttpPost("cashout")]
+    [HttpPost("cashOut")]
     public IActionResult CashOut()
     {
-        int? credits = HttpContext.Session.GetInt32("Credits");
+        const string errorName = "cashing out";
+        int?         credits    = HttpContext.Session.GetInt32("Credits");
 
         if (credits == null)
         {
-            return HandleExceptionResult(new InvalidOperationException("Attempt to cashout without valid session with credits."), 
-                                         "cashing out");
+            return HandleExceptionResult(new InvalidOperationException("Call to cash out without a valid session with credits."), 
+                                         errorName);
         }
 
         try
@@ -88,7 +87,7 @@ public class GameController : ControllerBase
         }
         catch (Exception ex)
         {
-            return HandleExceptionResult(ex, "cashing out");
+            return HandleExceptionResult(ex, errorName);
         }
     }
 
